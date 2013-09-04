@@ -31,7 +31,9 @@ class apache (
   $vhost_dir            = $apache::params::vhost_dir,
   $mod_dir              = $apache::params::mod_dir,
   $mod_enable_dir       = $apache::params::mod_enable_dir,
-  $package_ensure       = 'installed'
+  $package_ensure       = 'installed',
+  $user                 = $apache::params::user,
+  $group                = $apache::params::group,
 ) inherits apache::params {
 
   package { 'httpd':
@@ -44,25 +46,9 @@ class apache (
   # true/false is sufficient for both ensure and enable
   validate_bool($service_enable)
 
-  $user       = $apache::params::user
-  $group      = $apache::params::group
   $httpd_dir  = $apache::params::httpd_dir
   $ports_file = $apache::params::ports_file
   $logroot    = $apache::params::logroot
-
-  # declare the web server user and group
-  # Note: requiring the package means the package ought to create them and not puppet
-  group { $group:
-    ensure  => present,
-    require => Package['httpd']
-  }
-
-  user { $user:
-    ensure  => present,
-    gid     => $group,
-    require => Package['httpd'],
-    before  => Service['httpd'],
-  }
 
   service { 'httpd':
     ensure    => $service_enable,
